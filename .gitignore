@@ -39,3 +39,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# docker volumes
+caddy_data/
+caddy_config/
+
+# logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+Thumbs.db
+*.swp
+*.swo
+*~

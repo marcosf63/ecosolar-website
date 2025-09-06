@@ -1,0 +1,62 @@
+services:
+  ecosolar-web:
+    build: .
+    # Sem exposição de portas - apenas interno
+    expose:
+      - "3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    container_name: ecosolar-website
+    networks:
+      - ecosolar-network
+
+# Configurações para diferentes perfis de deploy
+
+  # Caddy como reverse proxy (profile: with-proxy)
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "9080:80"    # Porta alternativa para desenvolvimento
+      - "9443:443"   # Porta alternativa para HTTPS
+      - "9443:443/udp"  # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - ecosolar-web
+    restart: unless-stopped
+    container_name: ecosolar-caddy
+    networks:
+      - ecosolar-network
+    profiles:
+      - with-proxy
+    environment:
+      - CADDY_INGRESS_NETWORKS=ecosolar-network
+
+  # Configuração com porta exposta (profile: with-ports)
+  ecosolar-web-exposed:
+    build: .
+    ports:
+      - "3000:3000"  # Porta exposta para acesso direto
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    container_name: ecosolar-website-exposed
+    networks:
+      - ecosolar-network
+    profiles:
+      - with-ports
+
+volumes:
+  caddy_data:
+    external: false
+  caddy_config:
+    external: false
+
+networks:
+  ecosolar-network:
+    driver: bridge
